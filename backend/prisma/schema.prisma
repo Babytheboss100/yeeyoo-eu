@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Business {
+  id        String   @id @default(uuid())
+  url       String
+  name      String?
+  industry  String?
+  summary   String?
+  rawData   String?  @map("raw_data")
+  analysis  String?
+  posts     Post[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("businesses")
+}
+
+model Post {
+  id         String   @id @default(uuid())
+  businessId String   @map("business_id")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  platform   String
+  content    String
+  hashtags   String   @default("")
+  status     String   @default("pending")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("posts")
+}

@@ -1,0 +1,22 @@
+{
+  "name": "yeeyoo-eu-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npx prisma generate && node --watch src/index.js",
+    "start": "npx prisma generate && npx prisma migrate deploy && node src/index.js",
+    "migrate": "npx prisma migrate dev"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "prisma": "^6.5.0"
+  }
+}
