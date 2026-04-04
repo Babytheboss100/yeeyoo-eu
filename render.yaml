@@ -34,4 +34,4 @@ services:
 databases:
   - name: yeeyoo-eu-db
     region: frankfurt
-    plan: starter
+    plan: free
