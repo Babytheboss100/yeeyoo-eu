@@ -43,7 +43,7 @@ async function logLogin(user, req, method = 'email') {
 }
 
 // Invite-only mode: check if email is whitelisted
-const INVITE_ONLY = process.env.INVITE_ONLY !== 'false' // default ON
+const INVITE_ONLY = process.env.INVITE_ONLY === 'true' // default OFF
 async function checkWhitelist(email) {
   if (!INVITE_ONLY) return true
   // Admins bypass whitelist
