@@ -8,6 +8,8 @@ import { sendVerificationEmail } from '../services/email.js'
 
 const r = Router()
 
+const SENDGRID_CONFIGURED = Boolean(process.env.SENDGRID_API_KEY)
+
 const signToken = (user) =>
   jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' })
 
@@ -97,25 +99,34 @@ r.post('/register', async (req, res) => {
       return res.status(403).json({ error: 'invite_only', message: 'Vi er i lukket beta. Sok om tilgang.' })
     }
     const hash = await bcrypt.hash(password, 10)
-    const verifyToken = crypto.randomBytes(32).toString('hex')
+    const skipVerification = !SENDGRID_CONFIGURED
+    const verifyToken = skipVerification ? null : crypto.randomBytes(32).toString('hex')
     const user = await prisma.user.create({
       data: {
         name,
         email,
         passwordHash: hash,
         authProvider: 'email',
-        emailVerified: false,
+        emailVerified: skipVerification,
         verifyToken
       },
       select: { id: true, name: true, email: true }
     })
-    // Send verification email (non-blocking)
-    sendVerificationEmail(email, name, verifyToken)
-    res.status(201).json({
-      needsVerification: true,
-      message: 'Sjekk e-posten din for a aktivere kontoen.',
-      user
-    })
+    if (skipVerification) {
+      // No SendGrid — activate immediately and return token
+      logLogin(user, req, 'email')
+      res.status(201).json({
+        token: signToken(user),
+        user
+      })
+    } else {
+      sendVerificationEmail(email, name, verifyToken)
+      res.status(201).json({
+        needsVerification: true,
+        message: 'Sjekk e-posten din for a aktivere kontoen.',
+        user
+      })
+    }
   } catch (e) {
     if (e.code === 'P2002') return res.status(400).json({ error: 'E-post allerede i bruk' })
     res.status(500).json({ error: e.message })
@@ -136,8 +147,8 @@ r.post('/login', async (req, res) => {
     }
     const ok = await bcrypt.compare(password, user.passwordHash)
     if (!ok) return res.status(401).json({ error: 'Feil e-post eller passord' })
-    // Block unverified email users
-    if (user.authProvider === 'email' && user.emailVerified === false) {
+    // Block unverified email users (only if SendGrid is configured)
+    if (SENDGRID_CONFIGURED && user.authProvider === 'email' && user.emailVerified === false) {
       return res.status(403).json({
         error: 'E-posten din er ikke bekreftet. Sjekk innboksen din.',
         needsVerification: true,
