@@ -23,14 +23,15 @@ model Business {
 }
 
 model Post {
-  id         String   @id @default(uuid())
-  businessId String   @map("business_id")
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  platform   String
-  content    String
-  hashtags   String   @default("")
-  status     String   @default("pending")
-  createdAt  DateTime @default(now()) @map("created_at")
+  id          String    @id @default(uuid())
+  businessId  String    @map("business_id")
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  platform    String
+  content     String
+  hashtags    String    @default("")
+  status      String    @default("pending")
+  scheduledAt DateTime? @map("scheduled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   @@map("posts")
 }

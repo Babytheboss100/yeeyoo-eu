@@ -200,6 +200,36 @@ body::after{
   margin-top:16px;display:none;
 }
 
+/* ── CALENDAR ── */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-header h2{font-size:18px;font-weight:800}
+.cal-nav{display:flex;gap:8px}
+.cal-nav button{background:var(--card);border:1px solid var(--border);color:var(--white);padding:6px 14px;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer}
+.cal-nav button:hover{background:var(--card2)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day-name{text-align:center;font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;padding:8px 0}
+.cal-cell{min-height:80px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px;font-size:11px;position:relative;cursor:pointer;transition:border-color .2s}
+.cal-cell:hover{border-color:var(--blue)}
+.cal-cell.today{border-color:var(--purple);background:rgba(124,58,237,.08)}
+.cal-cell.empty{background:transparent;border-color:transparent;cursor:default}
+.cal-cell.empty:hover{border-color:transparent}
+.cal-date{font-weight:700;color:var(--muted);margin-bottom:4px}
+.cal-post{padding:2px 5px;border-radius:4px;font-size:9px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cal-post.linkedin{background:rgba(0,119,181,.25);color:#5bb8f5}
+.cal-post.instagram{background:rgba(225,48,108,.25);color:#f472b6}
+.cal-post.facebook{background:rgba(66,103,178,.2);color:#818cf8}
+.cal-post.tiktok{background:rgba(255,255,255,.1);color:#e0e0e0}
+.cal-post:hover{opacity:.8}
+.cal-legend{display:flex;gap:16px;margin-top:12px;justify-content:center}
+.cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.cal-legend-dot{width:8px;height:8px;border-radius:50%}
+.cal-actions{display:flex;gap:10px;margin-bottom:16px}
+.cal-actions button{flex:1;padding:10px;border:none;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;border-radius:var(--r);transition:all .2s}
+.btn-auto-schedule{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff}
+.btn-auto-schedule:hover{opacity:.9}
+.btn-back-posts{background:var(--card2);color:var(--white);border:1px solid var(--border) !important}
+.btn-back-posts:hover{background:var(--card3)}
+
 /* ── RESPONSIVE ── */
 @media(max-width:600px){
   .hero-input-wrap{flex-direction:column}
@@ -263,6 +293,33 @@ body::after{
       <div class="posts-count" id="postsCount"></div>
     </div>
     <div id="postsFeed"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="hero-btn" style="flex:1" onclick="openCalendar()">Innholdskalender</button>
+      <button class="hero-btn" style="flex:1;background:var(--card2);border:1px solid var(--border)" onclick="reset()">Ny analyse</button>
+    </div>
+  </div>
+
+  <!-- STEP 6: CALENDAR -->
+  <div class="step" id="step6">
+    <div class="cal-header">
+      <h2 id="calTitle"></h2>
+      <div class="cal-nav">
+        <button onclick="calNav(-1)">&larr;</button>
+        <button onclick="calNav(0)">I dag</button>
+        <button onclick="calNav(1)">&rarr;</button>
+      </div>
+    </div>
+    <div class="cal-actions">
+      <button class="btn-auto-schedule" onclick="autoSchedule()">Auto-distribuer i kalenderen</button>
+      <button class="btn-back-posts" onclick="showStep(5)">Tilbake til innlegg</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#0077b5"></div>LinkedIn</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#e1306c"></div>Instagram</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#4267b2"></div>Facebook</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fff"></div>TikTok</div>
+    </div>
     <button class="hero-btn" style="width:100%;margin-top:16px" onclick="reset()">Analyser en ny bedrift</button>
   </div>
 </div>
@@ -455,6 +512,93 @@ function reset() {
   document.getElementById('urlInput').value = ''
   document.getElementById('postsFeed').innerHTML = ''
   showStep(1)
+}
+
+// ── CALENDAR ──
+var calYear, calMonth, calPosts = []
+
+function openCalendar() {
+  var now = new Date()
+  calYear = now.getFullYear()
+  calMonth = now.getMonth()
+  showStep(6)
+  loadCalendar()
+}
+
+function calNav(dir) {
+  if (dir === 0) {
+    var now = new Date()
+    calYear = now.getFullYear()
+    calMonth = now.getMonth()
+  } else {
+    calMonth += dir
+    if (calMonth < 0) { calMonth = 11; calYear-- }
+    if (calMonth > 11) { calMonth = 0; calYear++ }
+  }
+  loadCalendar()
+}
+
+async function loadCalendar() {
+  var months = ['Januar','Februar','Mars','April','Mai','Juni','Juli','August','September','Oktober','November','Desember']
+  document.getElementById('calTitle').textContent = months[calMonth] + ' ' + calYear
+
+  try {
+    var q = '?year=' + calYear + '&month=' + (calMonth + 1)
+    if (currentBusiness) q += '&businessId=' + currentBusiness.id
+    var res = await fetch(API_BASE + '/api/posts/calendar' + q)
+    var data = await res.json()
+    calPosts = data.posts || []
+  } catch (e) {
+    calPosts = []
+  }
+  renderCalendar()
+}
+
+function renderCalendar() {
+  var grid = document.getElementById('calGrid')
+  var days = ['Man','Tir','Ons','Tor','Fre','Lør','Søn']
+  var html = days.map(function(d) { return '<div class="cal-day-name">' + d + '</div>' }).join('')
+
+  var firstDay = new Date(calYear, calMonth, 1).getDay()
+  var startOffset = firstDay === 0 ? 6 : firstDay - 1
+  var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
+  var today = new Date()
+  var isThisMonth = today.getFullYear() === calYear && today.getMonth() === calMonth
+
+  for (var i = 0; i < startOffset; i++) {
+    html += '<div class="cal-cell empty"></div>'
+  }
+
+  for (var d = 1; d <= daysInMonth; d++) {
+    var isToday = isThisMonth && d === today.getDate()
+    var dayPosts = calPosts.filter(function(p) {
+      return new Date(p.scheduledAt).getDate() === d
+    })
+    html += '<div class="cal-cell' + (isToday ? ' today' : '') + '">'
+    html += '<div class="cal-date">' + d + '</div>'
+    dayPosts.forEach(function(p) {
+      html += '<div class="cal-post ' + p.platform + '" title="' + escapeHtml(p.content.slice(0, 80)) + '">'
+      html += p.platform.charAt(0).toUpperCase() + p.platform.slice(1)
+      html += '</div>'
+    })
+    html += '</div>'
+  }
+  grid.innerHTML = html
+}
+
+async function autoSchedule() {
+  if (!currentBusiness) return
+  try {
+    var res = await fetch(API_BASE + '/api/posts/auto-schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ businessId: currentBusiness.id })
+    })
+    if (!res.ok) throw new Error('Feil ved auto-planlegging')
+    await loadCalendar()
+  } catch (e) {
+    alert(e.message)
+  }
 }
 </script>
 </body>
