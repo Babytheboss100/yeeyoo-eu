@@ -76,6 +76,64 @@ body::after{
 .header h1 em{font-style:normal;background:linear-gradient(90deg,var(--blue2),var(--purple2),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .header p{color:var(--muted);font-size:16px;max-width:500px;margin:0 auto}
 
+/* ── USER BAR ── */
+.user-bar{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-bottom:16px}
+.user-name{font-size:13px;color:var(--muted);font-weight:600}
+.btn-logout{
+  padding:6px 16px;background:var(--card);border:1px solid var(--border);
+  color:var(--muted);font-family:var(--font);font-size:12px;font-weight:600;
+  cursor:pointer;border-radius:var(--r);transition:all .2s;
+}
+.btn-logout:hover{background:var(--card2);color:var(--white)}
+
+/* ── AUTH FORMS ── */
+.auth-wrap{max-width:420px;margin:0 auto}
+.auth-card{
+  background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.04));
+  border:1px solid var(--border2);border-radius:16px;padding:32px;
+}
+.auth-card h2{font-size:22px;font-weight:800;margin-bottom:6px}
+.auth-card p.sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+.auth-field{margin-bottom:16px}
+.auth-field label{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.auth-field input{
+  width:100%;padding:12px 16px;
+  background:rgba(255,255,255,.06);border:1px solid var(--border2);
+  color:var(--white);font-family:var(--font);font-size:14px;
+  border-radius:var(--r);outline:none;transition:border-color .2s;
+}
+.auth-field input:focus{border-color:var(--purple2);box-shadow:0 0 0 3px rgba(168,85,247,.12)}
+.auth-btn{
+  width:100%;padding:14px;margin-top:8px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  border:none;color:#fff;font-family:var(--font);font-size:15px;font-weight:700;
+  cursor:pointer;border-radius:var(--r2);transition:all .2s;
+  box-shadow:0 0 24px rgba(124,58,237,.4);
+}
+.auth-btn:hover{transform:translateY(-1px);box-shadow:0 0 32px rgba(124,58,237,.6)}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--muted2);font-size:12px}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.auth-google{
+  width:100%;padding:12px;
+  background:var(--card);border:1px solid var(--border2);
+  color:var(--white);font-family:var(--font);font-size:14px;font-weight:600;
+  cursor:pointer;border-radius:var(--r2);transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.auth-google:hover{background:var(--card2)}
+.auth-google svg{width:20px;height:20px}
+.auth-switch{text-align:center;margin-top:20px;font-size:13px;color:var(--muted)}
+.auth-switch a{color:var(--blue2);text-decoration:none;font-weight:600;cursor:pointer}
+.auth-switch a:hover{text-decoration:underline}
+.auth-msg{
+  padding:10px 14px;border-radius:var(--r);font-size:13px;margin-bottom:16px;display:none;
+}
+.auth-msg.error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--hot);display:block}
+.auth-msg.success{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--ok);display:block}
+.auth-msg.info{background:rgba(45,91,227,.1);border:1px solid rgba(45,91,227,.3);color:var(--blue2);display:block}
+.resend-link{color:var(--blue2);text-decoration:underline;cursor:pointer;font-size:12px;margin-top:8px;display:inline-block}
+
 /* ── HERO INPUT ── */
 .hero-input-wrap{
   display:flex;gap:12px;max-width:600px;margin:0 auto;
@@ -131,7 +189,7 @@ body::after{
 .analysis-item h4{font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
 .analysis-item ul{list-style:none;padding:0}
 .analysis-item li{padding:4px 0;font-size:13px;color:var(--white)}
-.analysis-item li::before{content:'→ ';color:var(--purple2)}
+.analysis-item li::before{content:'-> ';color:var(--purple2)}
 .analysis-item p{font-size:13px;color:var(--white);line-height:1.5}
 
 .generate-btn{
@@ -252,75 +310,137 @@ body::after{
     <p>Lim inn nettsiden din og f&aring; ferdige innlegg for LinkedIn, Instagram, Facebook og TikTok p&aring; sekunder.</p>
   </div>
 
-  <!-- STEP 1: URL INPUT -->
-  <div class="step active" id="step1">
-    <div class="hero-input-wrap">
-      <input class="hero-input" id="urlInput" type="url" placeholder="Lim inn nettsiden din, f.eks. https://dinbedrift.no" />
-      <button class="hero-btn" id="analyseBtn" onclick="startScrape()">Analyser</button>
-    </div>
-    <div class="error-msg" id="scrapeError"></div>
-  </div>
+  <!-- AUTH SCREEN (shown when not logged in) -->
+  <div id="authScreen" style="display:none">
+    <div class="auth-wrap">
+      <!-- LOGIN FORM -->
+      <div id="loginForm" class="auth-card">
+        <h2>Logg inn</h2>
+        <p class="sub">Logg inn for &aring; bruke Yeeyoo</p>
+        <div id="loginMsg" class="auth-msg"></div>
+        <div class="auth-field">
+          <label>E-post</label>
+          <input type="email" id="loginEmail" placeholder="din@epost.no" />
+        </div>
+        <div class="auth-field">
+          <label>Passord</label>
+          <input type="password" id="loginPassword" placeholder="Ditt passord" />
+        </div>
+        <button class="auth-btn" id="loginBtn" onclick="doLogin()">Logg inn</button>
+        <div class="auth-divider">eller</div>
+        <button class="auth-google" id="googleBtn" onclick="doGoogleLogin()">
+          <svg viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Logg inn med Google
+        </button>
+        <div class="auth-switch">Har du ikke konto? <a onclick="showAuthForm('register')">Registrer deg</a></div>
+      </div>
 
-  <!-- STEP 2: LOADING -->
-  <div class="step" id="step2">
-    <div class="loading-wrap">
-      <div class="loading-spinner"></div>
-      <div class="loading-text" id="loadingText">Analyserer bedriften din<span class="loading-dots"></span></div>
-      <div class="loading-sub" id="loadingSub">Vi leser nettsiden og forst&aring;r virksomheten din</div>
-    </div>
-  </div>
-
-  <!-- STEP 3: ANALYSIS -->
-  <div class="step" id="step3">
-    <div class="analysis-card" id="analysisCard"></div>
-    <button class="generate-btn" id="generateBtn" onclick="startGenerate()">Generer innlegg</button>
-    <div class="error-msg" id="generateError"></div>
-  </div>
-
-  <!-- STEP 4: GENERATING -->
-  <div class="step" id="step4">
-    <div class="loading-wrap">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">Skriver innlegg<span class="loading-dots"></span></div>
-      <div class="loading-sub">AI lager skreddersydde innlegg for 4 plattformer</div>
-    </div>
-  </div>
-
-  <!-- STEP 5: POSTS -->
-  <div class="step" id="step5">
-    <div class="posts-header">
-      <h2>Dine innlegg</h2>
-      <div class="posts-count" id="postsCount"></div>
-    </div>
-    <div id="postsFeed"></div>
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="hero-btn" style="flex:1" onclick="openCalendar()">Innholdskalender</button>
-      <button class="hero-btn" style="flex:1;background:var(--card2);border:1px solid var(--border)" onclick="reset()">Ny analyse</button>
-    </div>
-  </div>
-
-  <!-- STEP 6: CALENDAR -->
-  <div class="step" id="step6">
-    <div class="cal-header">
-      <h2 id="calTitle"></h2>
-      <div class="cal-nav">
-        <button onclick="calNav(-1)">&larr;</button>
-        <button onclick="calNav(0)">I dag</button>
-        <button onclick="calNav(1)">&rarr;</button>
+      <!-- REGISTER FORM -->
+      <div id="registerForm" class="auth-card" style="display:none">
+        <h2>Opprett konto</h2>
+        <p class="sub">Kom i gang med Yeeyoo gratis</p>
+        <div id="registerMsg" class="auth-msg"></div>
+        <div class="auth-field">
+          <label>Navn</label>
+          <input type="text" id="registerName" placeholder="Ditt navn" />
+        </div>
+        <div class="auth-field">
+          <label>E-post</label>
+          <input type="email" id="registerEmail" placeholder="din@epost.no" />
+        </div>
+        <div class="auth-field">
+          <label>Passord</label>
+          <input type="password" id="registerPassword" placeholder="Minst 6 tegn" />
+        </div>
+        <button class="auth-btn" id="registerBtn" onclick="doRegister()">Opprett konto</button>
+        <div class="auth-divider">eller</div>
+        <button class="auth-google" onclick="doGoogleLogin()">
+          <svg viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Registrer med Google
+        </button>
+        <div class="auth-switch">Har du konto? <a onclick="showAuthForm('login')">Logg inn</a></div>
       </div>
     </div>
-    <div class="cal-actions">
-      <button class="btn-auto-schedule" onclick="autoSchedule()">Auto-distribuer i kalenderen</button>
-      <button class="btn-back-posts" onclick="showStep(5)">Tilbake til innlegg</button>
+  </div>
+
+  <!-- APP CONTENT (shown when logged in) -->
+  <div id="appContent" style="display:none">
+    <!-- USER BAR -->
+    <div class="user-bar">
+      <span class="user-name" id="userNameDisplay"></span>
+      <button class="btn-logout" onclick="doLogout()">Logg ut</button>
     </div>
-    <div class="cal-grid" id="calGrid"></div>
-    <div class="cal-legend">
-      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#0077b5"></div>LinkedIn</div>
-      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#e1306c"></div>Instagram</div>
-      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#4267b2"></div>Facebook</div>
-      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fff"></div>TikTok</div>
+
+    <!-- STEP 1: URL INPUT -->
+    <div class="step active" id="step1">
+      <div class="hero-input-wrap">
+        <input class="hero-input" id="urlInput" type="url" placeholder="Lim inn nettsiden din, f.eks. https://dinbedrift.no" />
+        <button class="hero-btn" id="analyseBtn" onclick="startScrape()">Analyser</button>
+      </div>
+      <div class="error-msg" id="scrapeError"></div>
     </div>
-    <button class="hero-btn" style="width:100%;margin-top:16px" onclick="reset()">Analyser en ny bedrift</button>
+
+    <!-- STEP 2: LOADING -->
+    <div class="step" id="step2">
+      <div class="loading-wrap">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Analyserer bedriften din<span class="loading-dots"></span></div>
+        <div class="loading-sub" id="loadingSub">Vi leser nettsiden og forst&aring;r virksomheten din</div>
+      </div>
+    </div>
+
+    <!-- STEP 3: ANALYSIS -->
+    <div class="step" id="step3">
+      <div class="analysis-card" id="analysisCard"></div>
+      <button class="generate-btn" id="generateBtn" onclick="startGenerate()">Generer innlegg</button>
+      <div class="error-msg" id="generateError"></div>
+    </div>
+
+    <!-- STEP 4: GENERATING -->
+    <div class="step" id="step4">
+      <div class="loading-wrap">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Skriver innlegg<span class="loading-dots"></span></div>
+        <div class="loading-sub">AI lager skreddersydde innlegg for 4 plattformer</div>
+      </div>
+    </div>
+
+    <!-- STEP 5: POSTS -->
+    <div class="step" id="step5">
+      <div class="posts-header">
+        <h2>Dine innlegg</h2>
+        <div class="posts-count" id="postsCount"></div>
+      </div>
+      <div id="postsFeed"></div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="hero-btn" style="flex:1" onclick="openCalendar()">Innholdskalender</button>
+        <button class="hero-btn" style="flex:1;background:var(--card2);border:1px solid var(--border)" onclick="resetApp()">Ny analyse</button>
+      </div>
+    </div>
+
+    <!-- STEP 6: CALENDAR -->
+    <div class="step" id="step6">
+      <div class="cal-header">
+        <h2 id="calTitle"></h2>
+        <div class="cal-nav">
+          <button onclick="calNav(-1)">&larr;</button>
+          <button onclick="calNav(0)">I dag</button>
+          <button onclick="calNav(1)">&rarr;</button>
+        </div>
+      </div>
+      <div class="cal-actions">
+        <button class="btn-auto-schedule" onclick="autoSchedule()">Auto-distribuer i kalenderen</button>
+        <button class="btn-back-posts" onclick="showStep(5)">Tilbake til innlegg</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#0077b5"></div>LinkedIn</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#e1306c"></div>Instagram</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#4267b2"></div>Facebook</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fff"></div>TikTok</div>
+      </div>
+      <button class="hero-btn" style="width:100%;margin-top:16px" onclick="resetApp()">Analyser en ny bedrift</button>
+    </div>
   </div>
 </div>
 
@@ -328,23 +448,168 @@ body::after{
 const API_BASE = 'https://yeeyoo-eu-backend-lcqc.onrender.com'
 
 let currentBusiness = null
+let authToken = localStorage.getItem('yeeyoo_token')
+let currentUser = null
 
+// ── AUTH HELPERS ──
+function authHeaders() {
+  const h = { 'Content-Type': 'application/json' }
+  if (authToken) h['Authorization'] = 'Bearer ' + authToken
+  return h
+}
+
+function showAuthForm(type) {
+  document.getElementById('loginForm').style.display = type === 'login' ? 'block' : 'none'
+  document.getElementById('registerForm').style.display = type === 'register' ? 'block' : 'none'
+  document.getElementById('loginMsg').className = 'auth-msg'
+  document.getElementById('registerMsg').className = 'auth-msg'
+}
+
+function showAuthMsg(formId, msg, type) {
+  var el = document.getElementById(formId)
+  el.textContent = msg
+  el.className = 'auth-msg ' + type
+}
+
+async function doLogin() {
+  var email = document.getElementById('loginEmail').value.trim()
+  var password = document.getElementById('loginPassword').value
+  if (!email || !password) return showAuthMsg('loginMsg', 'Fyll inn alle felt', 'error')
+  document.getElementById('loginBtn').disabled = true
+  try {
+    var res = await fetch(API_BASE + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password })
+    })
+    var data = await res.json()
+    if (!res.ok) {
+      if (data.needsVerification) {
+        showAuthMsg('loginMsg', data.error, 'info')
+        var msgEl = document.getElementById('loginMsg')
+        msgEl.innerHTML += '<br><span class="resend-link" onclick="resendVerification(\'' + email + '\')">Send verifiseringsmail p&aring; nytt</span>'
+        return
+      }
+      return showAuthMsg('loginMsg', data.error || 'Innlogging feilet', 'error')
+    }
+    authToken = data.token
+    currentUser = data.user
+    localStorage.setItem('yeeyoo_token', authToken)
+    showApp()
+  } catch (e) {
+    showAuthMsg('loginMsg', 'Nettverksfeil: ' + e.message, 'error')
+  } finally {
+    document.getElementById('loginBtn').disabled = false
+  }
+}
+
+async function doRegister() {
+  var name = document.getElementById('registerName').value.trim()
+  var email = document.getElementById('registerEmail').value.trim()
+  var password = document.getElementById('registerPassword').value
+  if (!name || !email || !password) return showAuthMsg('registerMsg', 'Fyll inn alle felt', 'error')
+  if (password.length < 6) return showAuthMsg('registerMsg', 'Passord m&aring; v&aelig;re minst 6 tegn', 'error')
+  document.getElementById('registerBtn').disabled = true
+  try {
+    var res = await fetch(API_BASE + '/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, email: email, password: password })
+    })
+    var data = await res.json()
+    if (!res.ok) return showAuthMsg('registerMsg', data.error || data.message || 'Registrering feilet', 'error')
+    if (data.needsVerification) {
+      showAuthMsg('registerMsg', data.message || 'Sjekk e-posten din for verifisering.', 'success')
+    } else {
+      showAuthMsg('registerMsg', 'Konto opprettet! Logg inn.', 'success')
+      setTimeout(function() { showAuthForm('login') }, 2000)
+    }
+  } catch (e) {
+    showAuthMsg('registerMsg', 'Nettverksfeil: ' + e.message, 'error')
+  } finally {
+    document.getElementById('registerBtn').disabled = false
+  }
+}
+
+async function resendVerification(email) {
+  try {
+    await fetch(API_BASE + '/api/auth/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+    showAuthMsg('loginMsg', 'Verifiseringsmail sendt!', 'success')
+  } catch (e) {
+    showAuthMsg('loginMsg', 'Kunne ikke sende mail', 'error')
+  }
+}
+
+function doGoogleLogin() {
+  window.location.href = API_BASE + '/api/auth/google'
+}
+
+function doLogout() {
+  authToken = null
+  currentUser = null
+  localStorage.removeItem('yeeyoo_token')
+  showAuth()
+}
+
+async function checkAuth() {
+  // Check for OAuth callback token in URL
+  var params = new URLSearchParams(window.location.search)
+  if (params.get('oauth_token')) {
+    authToken = params.get('oauth_token')
+    localStorage.setItem('yeeyoo_token', authToken)
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname)
+  }
+
+  if (!authToken) {
+    showAuth()
+    return
+  }
+  try {
+    var res = await fetch(API_BASE + '/api/auth/me', { headers: authHeaders() })
+    if (!res.ok) throw new Error('Invalid token')
+    currentUser = await res.json()
+    showApp()
+  } catch (e) {
+    authToken = null
+    localStorage.removeItem('yeeyoo_token')
+    showAuth()
+  }
+}
+
+function showAuth() {
+  document.getElementById('authScreen').style.display = 'block'
+  document.getElementById('appContent').style.display = 'none'
+  showAuthForm('login')
+}
+
+function showApp() {
+  document.getElementById('authScreen').style.display = 'none'
+  document.getElementById('appContent').style.display = 'block'
+  document.getElementById('userNameDisplay').textContent = currentUser?.name || currentUser?.email || ''
+}
+
+// ── APP LOGIC ──
 function showStep(n) {
-  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'))
+  document.querySelectorAll('.step').forEach(function(s) { s.classList.remove('active') })
   document.getElementById('step' + n).classList.add('active')
 }
 
 function showError(id, msg) {
-  const el = document.getElementById(id)
+  var el = document.getElementById(id)
   el.textContent = msg
   el.style.display = 'block'
-  setTimeout(() => el.style.display = 'none', 8000)
+  setTimeout(function() { el.style.display = 'none' }, 8000)
 }
 
 async function startScrape() {
-  const url = document.getElementById('urlInput').value.trim()
+  var url = document.getElementById('urlInput').value.trim()
   if (!url) return showError('scrapeError', 'Skriv inn en nettadresse')
-  if (!url.startsWith('http')) return showError('scrapeError', 'URL m\u00e5 starte med https://')
+  if (!url.startsWith('http')) return showError('scrapeError', 'URL ma starte med https://')
 
   document.getElementById('analyseBtn').disabled = true
   showStep(2)
@@ -354,26 +619,28 @@ async function startScrape() {
     document.getElementById('loadingText').innerHTML = 'Leser nettsiden<span class="loading-dots"></span>'
     document.getElementById('loadingSub').textContent = 'Henter innhold fra ' + new URL(url).hostname
 
-    const scrapeRes = await fetch(API_BASE + '/api/scrape', {
+    var scrapeRes = await fetch(API_BASE + '/api/scrape', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
+      headers: authHeaders(),
+      body: JSON.stringify({ url: url })
     })
     if (!scrapeRes.ok) throw new Error((await scrapeRes.json()).error || 'Scraping feilet')
-    const { business } = await scrapeRes.json()
+    var scrapeData = await scrapeRes.json()
+    var business = scrapeData.business
     currentBusiness = business
 
     // Step 2: Analyse
     document.getElementById('loadingText').innerHTML = 'Analyserer bedriften<span class="loading-dots"></span>'
     document.getElementById('loadingSub').textContent = 'Lager innholdsstrategi for ' + (business.name || 'bedriften')
 
-    const analyseRes = await fetch(API_BASE + '/api/analyse', {
+    var analyseRes = await fetch(API_BASE + '/api/analyse', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ businessId: business.id })
     })
     if (!analyseRes.ok) throw new Error((await analyseRes.json()).error || 'Analyse feilet')
-    const { analysis } = await analyseRes.json()
+    var analyseData = await analyseRes.json()
+    var analysis = analyseData.analysis
 
     renderAnalysis(business, analysis)
     showStep(3)
@@ -386,40 +653,21 @@ async function startScrape() {
 }
 
 function renderAnalysis(business, analysis) {
-  const card = document.getElementById('analysisCard')
-  const strengths = analysis.strengths || []
-  const opportunities = analysis.opportunities || []
-  const pillars = analysis.contentPillars || []
+  var card = document.getElementById('analysisCard')
+  var strengths = analysis.strengths || []
+  var opportunities = analysis.opportunities || []
+  var pillars = analysis.contentPillars || []
 
-  card.innerHTML = `
-    <h3>&#x1f3e2; ${business.name || 'Bedrift'} <span style="font-size:12px;color:var(--muted);font-weight:400">— ${business.industry || ''}</span></h3>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5">${business.summary || ''}</p>
-    <div class="analysis-grid">
-      <div class="analysis-item">
-        <h4>Styrker</h4>
-        <ul>${strengths.map(s => '<li>' + s + '</li>').join('')}</ul>
-      </div>
-      <div class="analysis-item">
-        <h4>Muligheter</h4>
-        <ul>${opportunities.map(s => '<li>' + s + '</li>').join('')}</ul>
-      </div>
-      <div class="analysis-item">
-        <h4>M&aring;lgruppe</h4>
-        <p>${analysis.targetAudience || '—'}</p>
-      </div>
-      <div class="analysis-item">
-        <h4>Tone</h4>
-        <p>${analysis.toneOfVoice || '—'}</p>
-      </div>
-    </div>
-    ${pillars.length ? `
-    <div style="margin-top:16px">
-      <h4 style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Innholdskategorier</h4>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${pillars.map(p => `<span style="background:var(--card2);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600">${p}</span>`).join('')}
-      </div>
-    </div>` : ''}
-  `
+  card.innerHTML =
+    '<h3>' + escapeHtml(business.name || 'Bedrift') + ' <span style="font-size:12px;color:var(--muted);font-weight:400">-- ' + escapeHtml(business.industry || '') + '</span></h3>' +
+    '<p style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5">' + escapeHtml(business.summary || '') + '</p>' +
+    '<div class="analysis-grid">' +
+      '<div class="analysis-item"><h4>Styrker</h4><ul>' + strengths.map(function(s) { return '<li>' + escapeHtml(s) + '</li>' }).join('') + '</ul></div>' +
+      '<div class="analysis-item"><h4>Muligheter</h4><ul>' + opportunities.map(function(s) { return '<li>' + escapeHtml(s) + '</li>' }).join('') + '</ul></div>' +
+      '<div class="analysis-item"><h4>Malgruppe</h4><p>' + escapeHtml(analysis.targetAudience || '—') + '</p></div>' +
+      '<div class="analysis-item"><h4>Tone</h4><p>' + escapeHtml(analysis.toneOfVoice || '—') + '</p></div>' +
+    '</div>' +
+    (pillars.length ? '<div style="margin-top:16px"><h4 style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Innholdskategorier</h4><div style="display:flex;gap:8px;flex-wrap:wrap">' + pillars.map(function(p) { return '<span style="background:var(--card2);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600">' + escapeHtml(p) + '</span>' }).join('') + '</div></div>' : '')
 }
 
 async function startGenerate() {
@@ -428,13 +676,14 @@ async function startGenerate() {
   showStep(4)
 
   try {
-    const res = await fetch(API_BASE + '/api/generate', {
+    var res = await fetch(API_BASE + '/api/generate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ businessId: currentBusiness.id })
     })
     if (!res.ok) throw new Error((await res.json()).error || 'Generering feilet')
-    const { posts } = await res.json()
+    var data = await res.json()
+    var posts = data.posts
     renderPosts(posts)
     showStep(5)
   } catch (e) {
@@ -447,25 +696,22 @@ async function startGenerate() {
 
 function renderPosts(posts) {
   document.getElementById('postsCount').textContent = posts.length + ' innlegg'
-  const feed = document.getElementById('postsFeed')
-  feed.innerHTML = posts.map(p => `
-    <div class="post-card ${p.status}" id="post-${p.id}">
-      <div class="post-header">
-        <div class="post-platform">
-          <span class="dot ${p.platform}"></span>
-          ${p.platform}
-        </div>
-        <span class="post-status ${p.status}">${statusLabel(p.status)}</span>
-      </div>
-      <div class="post-content">${escapeHtml(p.content)}</div>
-      ${p.hashtags ? `<div class="post-hashtags">${escapeHtml(p.hashtags)}</div>` : ''}
-      <div class="post-actions">
-        <button class="btn-approve" onclick="approvePost('${p.id}')">Godkjenn</button>
-        <button class="btn-reject" onclick="rejectPost('${p.id}')">Avvis</button>
-        <button class="btn-copy" onclick="copyPost('${p.id}', this)">Kopier</button>
-      </div>
-    </div>
-  `).join('')
+  var feed = document.getElementById('postsFeed')
+  feed.innerHTML = posts.map(function(p) {
+    return '<div class="post-card ' + p.status + '" id="post-' + p.id + '">' +
+      '<div class="post-header">' +
+        '<div class="post-platform"><span class="dot ' + p.platform + '"></span>' + p.platform + '</div>' +
+        '<span class="post-status ' + p.status + '">' + statusLabel(p.status) + '</span>' +
+      '</div>' +
+      '<div class="post-content">' + escapeHtml(p.content) + '</div>' +
+      (p.hashtags ? '<div class="post-hashtags">' + escapeHtml(p.hashtags) + '</div>' : '') +
+      '<div class="post-actions">' +
+        '<button class="btn-approve" onclick="approvePost(\'' + p.id + '\')">Godkjenn</button>' +
+        '<button class="btn-reject" onclick="rejectPost(\'' + p.id + '\')">Avvis</button>' +
+        '<button class="btn-copy" onclick="copyPost(\'' + p.id + '\', this)">Kopier</button>' +
+      '</div>' +
+    '</div>'
+  }).join('')
 }
 
 function statusLabel(s) {
@@ -473,15 +719,15 @@ function statusLabel(s) {
 }
 
 function escapeHtml(t) {
-  const d = document.createElement('div')
+  var d = document.createElement('div')
   d.textContent = t
   return d.innerHTML
 }
 
 async function approvePost(id) {
-  const res = await fetch(API_BASE + '/api/posts/' + id + '/approve', { method: 'PATCH' })
+  var res = await fetch(API_BASE + '/api/posts/' + id + '/approve', { method: 'PATCH', headers: authHeaders() })
   if (res.ok) {
-    const card = document.getElementById('post-' + id)
+    var card = document.getElementById('post-' + id)
     card.className = 'post-card approved'
     card.querySelector('.post-status').className = 'post-status approved'
     card.querySelector('.post-status').textContent = 'Godkjent'
@@ -489,9 +735,9 @@ async function approvePost(id) {
 }
 
 async function rejectPost(id) {
-  const res = await fetch(API_BASE + '/api/posts/' + id + '/reject', { method: 'PATCH' })
+  var res = await fetch(API_BASE + '/api/posts/' + id + '/reject', { method: 'PATCH', headers: authHeaders() })
   if (res.ok) {
-    const card = document.getElementById('post-' + id)
+    var card = document.getElementById('post-' + id)
     card.className = 'post-card rejected'
     card.querySelector('.post-status').className = 'post-status rejected'
     card.querySelector('.post-status').textContent = 'Avvist'
@@ -499,15 +745,16 @@ async function rejectPost(id) {
 }
 
 function copyPost(id, btn) {
-  const content = document.querySelector('#post-' + id + ' .post-content').textContent
-  const hashtags = document.querySelector('#post-' + id + ' .post-hashtags')?.textContent || ''
-  navigator.clipboard.writeText(content + '\n' + hashtags).then(() => {
+  var content = document.querySelector('#post-' + id + ' .post-content').textContent
+  var hashtagsEl = document.querySelector('#post-' + id + ' .post-hashtags')
+  var hashtags = hashtagsEl ? hashtagsEl.textContent : ''
+  navigator.clipboard.writeText(content + '\n' + hashtags).then(function() {
     btn.textContent = 'Kopiert!'
-    setTimeout(() => btn.textContent = 'Kopier', 2000)
+    setTimeout(function() { btn.textContent = 'Kopier' }, 2000)
   })
 }
 
-function reset() {
+function resetApp() {
   currentBusiness = null
   document.getElementById('urlInput').value = ''
   document.getElementById('postsFeed').innerHTML = ''
@@ -545,7 +792,7 @@ async function loadCalendar() {
   try {
     var q = '?year=' + calYear + '&month=' + (calMonth + 1)
     if (currentBusiness) q += '&businessId=' + currentBusiness.id
-    var res = await fetch(API_BASE + '/api/posts/calendar' + q)
+    var res = await fetch(API_BASE + '/api/posts/calendar' + q, { headers: authHeaders() })
     var data = await res.json()
     calPosts = data.posts || []
   } catch (e) {
@@ -556,7 +803,7 @@ async function loadCalendar() {
 
 function renderCalendar() {
   var grid = document.getElementById('calGrid')
-  var days = ['Man','Tir','Ons','Tor','Fre','Lør','Søn']
+  var days = ['Man','Tir','Ons','Tor','Fre','Lor','Son']
   var html = days.map(function(d) { return '<div class="cal-day-name">' + d + '</div>' }).join('')
 
   var firstDay = new Date(calYear, calMonth, 1).getDay()
@@ -591,7 +838,7 @@ async function autoSchedule() {
   try {
     var res = await fetch(API_BASE + '/api/posts/auto-schedule', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ businessId: currentBusiness.id })
     })
     if (!res.ok) throw new Error('Feil ved auto-planlegging')
@@ -600,6 +847,9 @@ async function autoSchedule() {
     alert(e.message)
   }
 }
+
+// ── INIT ──
+checkAuth()
 </script>
 </body>
 </html>

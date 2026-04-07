@@ -7,8 +7,87 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id             String    @id @default(uuid())
+  name           String
+  email          String    @unique
+  passwordHash   String?   @map("password_hash")
+  vippsSub       String?   @map("vipps_sub")
+  googleSub      String?   @map("google_sub")
+  authProvider   String    @default("email") @map("auth_provider")
+  emailVerified  Boolean   @default(false) @map("email_verified")
+  verifyToken    String?   @map("verify_token")
+  isAdmin        Boolean   @default(false) @map("is_admin")
+  onboardingDone Boolean   @default(false) @map("onboarding_done")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  subscription   Subscription?
+  oauthTokens    OAuthToken[]
+  projects       Project[]
+  posts          Post[]
+  businesses     Business[]
+  notifications  Notification[]
+  loginLogs      LoginLog[]
+  teamInvites    TeamMember[]   @relation("InvitedBy")
+  teamMembers    TeamMember[]   @relation("MemberOf")
+
+  @@map("users")
+}
+
+model Subscription {
+  id                    String    @id @default(uuid())
+  userId                String    @unique @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId      String?   @map("stripe_customer_id")
+  stripeSubscriptionId  String?   @map("stripe_subscription_id")
+  plan                  String    @default("free")
+  status                String    @default("active")
+  currentPeriodEnd      DateTime? @map("current_period_end")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@map("subscriptions")
+}
+
+model OAuthToken {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform         String
+  accessToken      String   @map("access_token")
+  refreshToken     String?  @map("refresh_token")
+  expiresAt        DateTime? @map("expires_at")
+  platformUserId   String?  @map("platform_user_id")
+  platformUsername  String?  @map("platform_username")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, platform])
+  @@map("oauth_tokens")
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String?
+  color     String   @default("#5555ff")
+  tone      String   @default("profesjonell")
+  audience  String   @default("")
+  keywords  String   @default("")
+  about     String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  posts       Post[]
+  seoProfile  SeoProfile?
+  teamMembers TeamMember[]
+
+  @@map("projects")
+}
+
 model Business {
   id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   url       String
   name      String?
   industry  String?
@@ -24,14 +103,98 @@ model Business {
 
 model Post {
   id          String    @id @default(uuid())
-  businessId  String    @map("business_id")
-  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  businessId  String?   @map("business_id")
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId      String?   @map("user_id")
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  projectId   String?   @map("project_id")
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
   platform    String
   content     String
   hashtags    String    @default("")
   status      String    @default("pending")
+  aiModel     String    @default("claude") @map("ai_model")
   scheduledAt DateTime? @map("scheduled_at")
+  publishedAt DateTime? @map("published_at")
   createdAt   DateTime  @default(now()) @map("created_at")
 
   @@map("posts")
+}
+
+model TeamMember {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId      String?  @map("user_id")
+  user        User?    @relation("MemberOf", fields: [userId], references: [id], onDelete: SetNull)
+  invitedBy   String   @map("invited_by")
+  inviter     User     @relation("InvitedBy", fields: [invitedBy], references: [id], onDelete: Cascade)
+  email       String
+  role        String   @default("editor")
+  status      String   @default("pending")
+  inviteToken String?  @map("invite_token")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([projectId, email])
+  @@map("team_members")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("info")
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
+
+model InviteWhitelist {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  approved  Boolean  @default(false)
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("invite_whitelist")
+}
+
+model SeoProfile {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  projectId       String   @unique @map("project_id")
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  companyName     String   @map("company_name")
+  companyOffer    String   @default("") @map("company_offer")
+  industry        String
+  locations       String   @default("")
+  targetCustomer  String   @default("") @map("target_customer")
+  competitors     String   @default("")
+  keywords        Json?
+  metaTitle       String?  @map("meta_title")
+  metaDescription String?  @map("meta_description")
+  blogIdeas       Json?    @map("blog_ideas")
+  actionChecklist Json?    @map("action_checklist")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("seo_profiles")
+}
+
+model LoginLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  country   String?
+  method    String   @default("email")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("login_logs")
 }
