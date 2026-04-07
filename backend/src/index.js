@@ -14,7 +14,7 @@ const app = express()
 const PORT = process.env.PORT || 3001
 
 app.use(helmet({ crossOriginResourcePolicy: false }))
-app.use(cors({ origin: true, credentials: true }))
+app.use(cors({ origin: ['https://yeeyoo-eu-frontend.onrender.com','https://yeeyoo-eu-frontend-lcqc.onrender.com','https://yeeyoo.eu','*'], credentials: true }))
 app.set('trust proxy', 1)
 app.use(express.json({ limit: '5mb' }))
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
